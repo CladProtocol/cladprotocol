@@ -1,0 +1,41 @@
+# Production runtime: the web server + the IRONCLAD cron worker, from one image.
+# Both read secrets from `.env` (DATABASE_URL, SESSION_SECRET, BASE_RPC_URL,
+# TREASURY_PRIVATE_KEY, NETWORK, …). Bring it up with:  docker compose up -d --build
+#
+# Run migrations once against your Supabase DB before first boot:
+#   npm run db:migrate     (or: docker compose run --rm web npx drizzle-kit migrate)
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        # Optional WalletConnect id baked into the client bundle at build time.
+        VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID:-}
+    env_file: .env
+    environment:
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  cron:
+    build:
+      context: .
+    env_file: .env
+    command: ["node", "dist/cron.mjs"]
+    restart: unless-stopped
+    depends_on:
+      - web
+
+  # Agent fleet runner: drives every ACTIVE instance through its runtime so
+  # deployed bots actually do work (src/runtime). Honors RUNTIME_MODE (default
+  # paper — no real funds) + AGENT_CRON_SCHEDULE.
+  agents:
+    build:
+      context: .
+    env_file: .env
+    command: ["node", "dist/agents.mjs"]
+    restart: unless-stopped
+    depends_on:
+      - web
