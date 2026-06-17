@@ -46,6 +46,7 @@ Thumbs.db
 .tanstack/
 .wrangler/
 .dev.vars
+.vercel/
 
 # Markdown docs (except README)
 *.md

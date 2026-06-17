@@ -16,7 +16,7 @@ export default defineConfig({
   // Worker. The lovable config only applies Cloudflare options when the preset is
   // "cloudflare-module"; this opts us out cleanly. Output: `node dist/server/index.mjs`.
   nitro: {
-    preset: "node-server",
+    preset: "vercel",
   },
   tanstackStart: {
     server: { entry: "server" },

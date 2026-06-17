@@ -247,7 +247,7 @@ export default function Hero() {
           <button
             type="button"
             onClick={onConnectClick}
-            className="group bg-gray-900 hover:bg-gray-800 text-white text-[13px] sm:text-[14px] font-medium rounded-full pl-5 sm:pl-6 pr-2 py-2 flex items-center gap-3 transition-colors"
+            className="group bg-gray-900 hover:bg-gray-800 text-white text-[14px] sm:text-[15px] font-medium rounded-full pl-5 sm:pl-6 pr-2 py-2 flex items-center gap-3 transition-colors"
           >
             <Wallet size={15} className="shrink-0" />
             <RollText label={isAuthenticated ? "Open Command Center" : "Connect wallet"} />
