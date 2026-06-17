@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build output
+dist/
+build/
+.output/
+.vinxi/
+.nitro/
+
+# Local data and logs
+.data/
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Claude AI
+.claude/
+
+# Tool-specific
+.lovable/
+.sixth/
+.tanstack/
+.wrangler/
+.dev.vars
+
+# Markdown docs (except README)
+*.md
+!README.md
+
+# PDF files
+*.pdf
+
+# Temp
+*.tmp
+*.temp
