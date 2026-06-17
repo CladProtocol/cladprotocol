@@ -1,0 +1,1 @@
+ALTER TABLE "agent_instances" ADD COLUMN "config" jsonb DEFAULT '{"mode":"paper"}'::jsonb NOT NULL;
