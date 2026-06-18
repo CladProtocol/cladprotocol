@@ -1,16 +1,19 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useWalletModal } from "./wallet-modal";
 
 const EASE = "cubic-bezier(0.25,0.1,0.25,1)";
 
 export default function CTA() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { open } = useWalletModal();
   const onConnectClick = () =>
-    isAuthenticated ? navigate({ to: "/dashboard" }) : open({ redirect: true });
+    isAuthenticated ? router.push("/dashboard") : open({ redirect: true });
 
   return (
     <section className="bg-white pt-16 sm:pt-20 lg:pt-28 pb-16 sm:pb-20 lg:pb-28">
@@ -66,7 +69,7 @@ export default function CTA() {
               </span>
             </button>
             <Link
-              to="/docs"
+              href="/docs"
               className="group border border-white/15 hover:border-white/40 text-white text-[14px] font-medium rounded-full px-6 py-2.5 inline-flex items-center gap-3 transition-colors self-start"
             >
               <span>Read the docs</span>

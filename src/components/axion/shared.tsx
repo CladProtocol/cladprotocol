@@ -1,11 +1,9 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-/** Shared easing curve used across all Clad Protocol motion. */
 export const EASE = "cubic-bezier(0.25,0.1,0.25,1)";
 
-/** Vertically-rolling label used on hover for pill buttons. */
 export function RollText({ label }: { label: string }) {
   return (
     <span className="flex flex-col overflow-hidden h-[20px] leading-[20px]">
@@ -60,17 +58,16 @@ type PillButtonProps = {
   variant?: PillVariant;
   className?: string;
 } & (
-  | { to: string; params?: Record<string, string>; href?: never; onClick?: never }
-  | { href: string; to?: never; params?: never; onClick?: never }
-  | { onClick: () => void; to?: never; href?: never; params?: never }
+  | { to: string; href?: never; onClick?: never }
+  | { href: string; to?: never; onClick?: never }
+  | { onClick: () => void; to?: never; href?: never }
 );
 
-/** The canonical Clad pill button — renders as a Link, anchor, or button. */
 export function PillButton({ label, variant = "accent", className = "", ...rest }: PillButtonProps) {
   const cls = `${PILL_BASE} ${PILL_VARIANTS[variant]} ${className}`;
   if ("to" in rest && rest.to) {
     return (
-      <Link to={rest.to} params={rest.params} className={cls}>
+      <Link href={rest.to} className={cls}>
         <PillInner label={label} variant={variant} />
       </Link>
     );
@@ -89,8 +86,15 @@ export function PillButton({ label, variant = "accent", className = "", ...rest 
   );
 }
 
-/** A numbered / dotted section label like "1  Introducing Clad". */
-export function SectionTag({ index, label, dark = false }: { index?: number; label: string; dark?: boolean }) {
+export function SectionTag({
+  index,
+  label,
+  dark = false,
+}: {
+  index?: number;
+  label: string;
+  dark?: boolean;
+}) {
   return (
     <div className="flex items-center gap-3">
       {index !== undefined ? (
@@ -111,7 +115,6 @@ export function SectionTag({ index, label, dark = false }: { index?: number; lab
   );
 }
 
-/** Small accent badge (yellow underline rule used as a section opener). */
 export function AccentRule({ className = "" }: { className?: string }) {
   return <div className={`h-0.5 w-16 bg-[#ECE81A] ${className}`} />;
 }
@@ -128,30 +131,27 @@ const STATUS_STYLES: Record<string, string> = {
   reverted: "bg-gray-900 text-white",
 };
 
-/** Status pill used in tables across the command center. */
 export function StatusBadge({ status }: { status: string }) {
   const cls = STATUS_STYLES[status] ?? "bg-gray-200 text-gray-700";
   return (
-    <span className={`text-[11px] font-medium px-2 py-1 rounded-full capitalize ${cls}`}>{status}</span>
+    <span className={`text-[11px] font-medium px-2 py-1 rounded-full capitalize ${cls}`}>
+      {status}
+    </span>
   );
 }
 
-/** Inline "see more" link with the rotating up-right arrow. */
 export function MoreLink({
   to,
-  params,
   label,
   className = "",
 }: {
   to: string;
-  params?: Record<string, string>;
   label: string;
   className?: string;
 }) {
   return (
     <Link
-      to={to}
-      params={params}
+      href={to}
       className={`group inline-flex items-center gap-1 text-[13px] font-medium hover:opacity-70 transition-opacity ${className}`}
     >
       {label}
@@ -160,12 +160,10 @@ export function MoreLink({
   );
 }
 
-/** Generic card wrapper to keep radius / border consistent. */
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`bg-white rounded-2xl ${className}`}>{children}</div>;
 }
 
-/** Lightweight CSS bar chart for a labelled numeric series. */
 export function MiniBars({
   data,
   height = 120,

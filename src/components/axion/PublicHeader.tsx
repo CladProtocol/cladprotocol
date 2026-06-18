@@ -1,7 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { Menu, Send, XIcon } from "lucide-react";
-import cladLogo from "@/assets/clad-logo.png";
 import ConnectWallet from "./ConnectWallet";
 
 export type PublicNavKey = "marketplace" | "legion" | "docs" | "dashboard";
@@ -13,22 +14,24 @@ const NAV: { key: PublicNavKey; label: string; to: string }[] = [
   { key: "dashboard", label: "Command Center", to: "/dashboard" },
 ];
 
-/** Shared white-pill top navigation for all public (non-landing) pages. */
 export default function PublicHeader({ active }: { active?: PublicNavKey }) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="relative z-30 mx-auto w-full max-w-[1440px] p-2 sm:p-3">
-      <nav className="bg-white rounded-full flex items-center justify-between gap-2" style={{ padding: 5 }}>
+      <nav
+        className="bg-white rounded-full flex items-center justify-between gap-2"
+        style={{ padding: 5 }}
+      >
         <div className="flex items-center gap-4 lg:gap-6 min-w-0">
-          <Link to="/" className="flex items-center gap-3 pl-1 shrink-0">
-            <img src={cladLogo} alt="Clad Protocol" className="h-7 sm:h-8 w-auto" />
+          <Link href="/" className="flex items-center gap-3 pl-1 shrink-0">
+            <img src="/clad-logo.png" alt="Clad Protocol" className="h-7 sm:h-8 w-auto" />
           </Link>
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
             {NAV.map((l) => (
               <Link
                 key={l.key}
-                to={l.to}
+                href={l.to}
                 className={`text-[14px] transition-opacity hover:opacity-70 ${
                   active === l.key ? "text-gray-900 font-medium" : "text-gray-600"
                 }`}
@@ -69,15 +72,18 @@ export default function PublicHeader({ active }: { active?: PublicNavKey }) {
             style={{ animation: "slideUp 0.4s cubic-bezier(0.32,0.72,0,1)" }}
           >
             <div className="flex items-center justify-end mb-6">
-              <button onClick={() => setOpen(false)} className="bg-gray-900 text-white rounded-full p-2.5">
+              <button
+                onClick={() => setOpen(false)}
+                className="bg-gray-900 text-white rounded-full p-2.5"
+              >
                 <XIcon size={18} />
               </button>
             </div>
             <div className="flex flex-col gap-3 mb-8">
               {NAV.map((l) => (
-                  <Link
+                <Link
                   key={l.key}
-                  to={l.to}
+                  href={l.to}
                   onClick={() => setOpen(false)}
                   className="text-[28px] leading-[32px] font-medium text-gray-900"
                 >

@@ -1,5 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   ArrowUpRight,
   Bot,
@@ -12,7 +15,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAccount } from "wagmi";
-import cladLogo from "@/assets/clad-logo.png";
 import { EASE } from "./shared";
 import ConnectWallet from "./ConnectWallet";
 import { shortAddress, useAuth } from "@/hooks/use-auth";
@@ -28,10 +30,6 @@ const NAV: NavItem[] = [
   { label: "Settings", to: "/dashboard/settings", icon: Settings },
 ];
 
-/**
- * Sidebar + topbar layout for every Command Center page. Children render in the
- * main content column; the active nav item is derived from the current route.
- */
 export default function DashboardShell({
   title,
   children,
@@ -41,17 +39,21 @@ export default function DashboardShell({
 }) {
   const { user, address } = useAuth();
   const { chain } = useAccount();
+  const pathname = usePathname();
   const operatorAddress = user?.address ?? address ?? "";
-  const operatorName = user?.displayName || user?.ens || (operatorAddress ? shortAddress(operatorAddress) : "Operator");
+  const operatorName =
+    user?.displayName || user?.ens || (operatorAddress ? shortAddress(operatorAddress) : "Operator");
   const avatarChar = (user?.displayName || user?.ens || "O").charAt(0).toUpperCase();
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#EFEFEF" }}>
-      {/* Top bar */}
       <div className="mx-auto w-full max-w-[1440px] p-2 sm:p-3">
-        <nav className="bg-white rounded-full flex items-center justify-between gap-2" style={{ padding: 5 }}>
-          <Link to="/" className="flex items-center gap-3 pl-1 min-w-0">
-            <img src={cladLogo} alt="Clad Protocol" className="h-7 sm:h-8 w-auto" />
+        <nav
+          className="bg-white rounded-full flex items-center justify-between gap-2"
+          style={{ padding: 5 }}
+        >
+          <Link href="/" className="flex items-center gap-3 pl-1 min-w-0">
+            <img src="/clad-logo.png" alt="Clad Protocol" className="h-7 sm:h-8 w-auto" />
             <span className="text-[14px] font-medium text-gray-900 hidden sm:inline">
               {title ?? "Command Center"}
             </span>
@@ -62,7 +64,7 @@ export default function DashboardShell({
               Connected to {chain?.name ?? "Base"}
             </span>
             <Link
-              to="/marketplace"
+              href="/marketplace"
               className="group bg-gray-900 text-white text-[13px] font-medium rounded-full pl-4 pr-2 py-2 inline-flex items-center gap-2"
             >
               <Plus size={14} />
@@ -81,7 +83,6 @@ export default function DashboardShell({
 
       <div className="mx-auto w-full max-w-[1440px] px-2 sm:px-3 pb-10 sm:pb-16">
         <div className="flex flex-col lg:flex-row gap-3">
-          {/* Sidebar */}
           <aside className="lg:w-[248px] lg:shrink-0">
             <div className="bg-white rounded-2xl p-3 lg:sticky lg:top-3">
               <div className="hidden lg:flex items-center gap-3 px-2 pt-2 pb-4">
@@ -89,7 +90,9 @@ export default function DashboardShell({
                   {avatarChar}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] font-medium text-gray-900 truncate">{operatorName}</div>
+                  <div className="text-[13px] font-medium text-gray-900 truncate">
+                    {operatorName}
+                  </div>
                   <div className="text-[11px] text-gray-500 font-mono truncate">
                     {operatorAddress ? shortAddress(operatorAddress) : ""}
                   </div>
@@ -98,19 +101,18 @@ export default function DashboardShell({
               <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
                 {NAV.map((item) => {
                   const Icon = item.icon;
+                  const isActive = item.exact
+                    ? pathname === item.to
+                    : pathname.startsWith(item.to);
                   return (
                     <Link
                       key={item.to}
-                      to={item.to}
-                      activeOptions={{ exact: item.exact }}
-                      activeProps={{
-                        className:
-                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium whitespace-nowrap bg-gray-900 text-white",
-                      }}
-                      inactiveProps={{
-                        className:
-                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] whitespace-nowrap text-gray-600 hover:bg-[#F5F5F5] hover:text-gray-900 transition-colors",
-                      }}
+                      href={item.to}
+                      className={
+                        isActive
+                          ? "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium whitespace-nowrap bg-gray-900 text-white"
+                          : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] whitespace-nowrap text-gray-600 hover:bg-[#F5F5F5] hover:text-gray-900 transition-colors"
+                      }
                     >
                       <Icon size={16} className="shrink-0" />
                       {item.label}
@@ -120,7 +122,7 @@ export default function DashboardShell({
               </nav>
               <div className="hidden lg:block mt-3 pt-3 border-t border-gray-100">
                 <Link
-                  to="/"
+                  href="/"
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   ← Back to site
@@ -129,7 +131,6 @@ export default function DashboardShell({
             </div>
           </aside>
 
-          {/* Main content */}
           <section className="flex-1 min-w-0">{children}</section>
         </div>
       </div>

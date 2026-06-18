@@ -1,43 +1,42 @@
 import { ArrowRight, Send } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import cladLogo from "@/assets/clad-logo.png";
+import Link from "next/link";
 
 const EASE = "cubic-bezier(0.25,0.1,0.25,1)";
 
-type FooterLink = { label: string; to: string; params?: Record<string, string> };
+type FooterLink = { label: string; href: string };
 
 const COLUMNS: { heading: string; links: FooterLink[] }[] = [
   {
     heading: "Protocol",
     links: [
-      { label: "Marketplace", to: "/marketplace" },
-      { label: "Legion", to: "/legion" },
-      { label: "Documentation", to: "/docs" },
+      { label: "Marketplace", href: "/marketplace" },
+      { label: "Legion", href: "/legion" },
+      { label: "Documentation", href: "/docs" },
     ],
   },
   {
     heading: "Command Center",
     links: [
-      { label: "Overview", to: "/dashboard" },
-      { label: "Fleet", to: "/dashboard/fleet" },
-      { label: "IRONCLAD ledger", to: "/dashboard/ledger" },
-      { label: "Payments", to: "/dashboard/payments" },
+      { label: "Overview", href: "/dashboard" },
+      { label: "Fleet", href: "/dashboard/fleet" },
+      { label: "IRONCLAD ledger", href: "/dashboard/ledger" },
+      { label: "Payments", href: "/dashboard/payments" },
     ],
   },
   {
     heading: "Developers",
     links: [
-      { label: "Introduction", to: "/docs/$section", params: { section: "introduction" } },
-      { label: "x402 payments", to: "/docs/$section", params: { section: "x402" } },
-      { label: "IRONCLAD", to: "/docs/$section", params: { section: "ironclad" } },
-      { label: "ROS 2 bridge", to: "/docs/$section", params: { section: "ros2" } },
+      { label: "Introduction", href: "/docs/introduction" },
+      { label: "x402 payments", href: "/docs/x402" },
+      { label: "IRONCLAD", href: "/docs/ironclad" },
+      { label: "ROS 2 bridge", href: "/docs/ros2" },
     ],
   },
 ];
 
-function FooterLink({ link }: { link: FooterLink }) {
+function FooterLinkItem({ link }: { link: FooterLink }) {
   return (
-    <Link to={link.to} params={link.params} className="text-[14px] text-gray-900 hover:opacity-70 transition-opacity">
+    <Link href={link.href} className="text-[14px] text-gray-900 hover:opacity-70 transition-opacity">
       {link.label}
     </Link>
   );
@@ -51,7 +50,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-10 lg:gap-8 pb-12 sm:pb-16 lg:pb-20">
           <div className="flex flex-col gap-6 max-w-md">
             <div className="flex items-center gap-3">
-              <img src={cladLogo} alt="Clad Protocol" className="h-8 w-auto" />
+              <img src="/clad-logo.png" alt="Clad Protocol" className="h-8 w-auto" />
               <span className="text-[15px] font-medium text-gray-900">Clad Protocol</span>
             </div>
             <p className="text-[14px] text-gray-600 leading-relaxed">
@@ -80,7 +79,7 @@ export default function Footer() {
               </a>
             </div>
             <Link
-              to="/marketplace"
+              href="/marketplace"
               className="group bg-gray-900 text-white text-[13px] font-medium rounded-full pl-5 pr-2 py-2 inline-flex items-center gap-3 self-start"
             >
               <span>Explore marketplace</span>
@@ -100,7 +99,7 @@ export default function Footer() {
                 {col.heading}
               </span>
               {col.links.map((l) => (
-                <FooterLink key={l.label} link={l} />
+                <FooterLinkItem key={l.label} link={l} />
               ))}
             </div>
           ))}

@@ -1,11 +1,11 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 
 const EASE = "cubic-bezier(0.25,0.1,0.25,1)";
 
 function OrangeButton({ label, to }: { label: string; to: string }) {
   return (
-    <Link to={to} className="group bg-[#ECE81A] hover:bg-[#d4ce15] text-gray-900 text-[13px] sm:text-[14px] font-medium rounded-full pl-5 sm:pl-6 pr-2 py-2 inline-flex items-center gap-3 transition-colors self-start">
+    <Link href={to} className="group bg-[#ECE81A] hover:bg-[#d4ce15] text-gray-900 text-[13px] sm:text-[14px] font-medium rounded-full pl-5 sm:pl-6 pr-2 py-2 inline-flex items-center gap-3 transition-colors self-start">
       <span className="flex flex-col overflow-hidden h-[20px] leading-[20px]">
         <span
           className="transition-transform duration-500 group-hover:-translate-y-1/2"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { ChevronDown, LayoutGrid, LogOut } from "lucide-react";
 import {
   DropdownMenu,
@@ -15,20 +15,12 @@ import { useWalletModal } from "./wallet-modal";
 import { PillButton } from "./shared";
 
 type Props = {
-  /** Pill style when signed out. */
   variant?: "dark" | "accent" | "outline";
-  /** Send the operator to the Command Center after a fresh sign-in. */
   redirect?: boolean;
-  /** Hide the "Open Command Center" item (e.g. when already inside it). */
   hideDashboardLink?: boolean;
   className?: string;
 };
 
-/**
- * The canonical connect/operator control. Signed out → a pill that opens the
- * connect-wallet modal. Signed in → the operator's address with a dropdown to
- * open the Command Center or disconnect.
- */
 export default function ConnectWallet({
   variant = "dark",
   redirect = true,
@@ -67,7 +59,7 @@ export default function ConnectWallet({
         <DropdownMenuSeparator />
         {!hideDashboardLink && (
           <DropdownMenuItem asChild>
-            <Link to="/dashboard" className="cursor-pointer">
+            <Link href="/dashboard" className="cursor-pointer">
               <LayoutGrid size={15} /> Command Center
             </Link>
           </DropdownMenuItem>
