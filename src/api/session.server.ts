@@ -1,22 +1,10 @@
-/**
- * Server-only session + request helpers.
- *
- * This module imports `@tanstack/react-start/server`, which the client import-
- * protection plugin denies in the browser bundle. It is therefore kept in its
- * own `.server.ts` file and only ever referenced *inside* `createServerFn`
- * handlers (or other server fns) — never at the module top level of a client-
- * reachable file — so the server-fn split transform strips it from client builds.
- *
- * The session is an encrypted, signed, httpOnly cookie (h3 `useSession`, sealed
- * with `SESSION_SECRET`), which is edge-safe on workerd.
- */
-import { getRequestHost, getRequestProtocol, useSession } from "@tanstack/react-start/server";
+import { getIronSession } from "iron-session";
+import type { IronSession } from "iron-session";
+import { cookies, headers } from "next/headers";
 import { getServerEnv } from "./env";
 
 export type SessionData = { address?: string; nonce?: string; nonceAt?: number };
 
-// ≥32 chars (h3 requires it). Dev-only fallback; prod uses the SESSION_SECRET
-// worker secret. Never relied on once SESSION_SECRET is set.
 const DEV_SESSION_PASSWORD = "clad-protocol-insecure-dev-session-password-change-me";
 
 let warnedDevSecret = false;
@@ -31,45 +19,37 @@ async function getSessionPassword(): Promise<string> {
     );
   }
   if (!warnedDevSecret) {
-    console.warn(
-      "[auth] SESSION_SECRET is unset or shorter than 32 chars — using an insecure dev fallback. " +
-        "Set it (a host env var, e.g. openssl rand -hex 32) before deploying.",
-    );
+    console.warn("[auth] SESSION_SECRET is unset — using insecure dev fallback.");
     warnedDevSecret = true;
   }
   return DEV_SESSION_PASSWORD;
 }
 
-/** The current request's sealed session manager (read/update/clear). */
-export async function appSession() {
+export async function appSession(): Promise<IronSession<SessionData>> {
   const password = await getSessionPassword();
-  return useSession<SessionData>({
+  const cookieStore = await cookies();
+  return getIronSession<SessionData>(cookieStore, {
     password,
-    name: "clad_session",
-    // Keep the sealed token in the httpOnly cookie only (no echo header).
-    sessionHeader: false,
-    cookie: {
+    cookieName: "clad_session",
+    cookieOptions: {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      // Browsers drop Secure cookies over http://localhost during dev.
-      secure: getRequestProtocol() === "https",
+      secure: process.env.NODE_ENV === "production",
     },
   });
 }
 
-/** The request host, for binding a SIWE signature to this origin (EIP-4361). */
-export function getRequestDomain(): string | undefined {
-  return getRequestHost() || undefined;
+export async function getRequestDomain(): Promise<string | undefined> {
+  const h = await headers();
+  return h.get("host") || undefined;
 }
 
-/** The authenticated address, or null. Use in public fns that personalize. */
 export async function getOptionalOwner(): Promise<string | null> {
   const session = await appSession();
-  return session.data.address ?? null;
+  return session.address ?? null;
 }
 
-/** The authenticated address; throws when unauthenticated. Use in gated fns. */
 export async function requireOwner(): Promise<string> {
   const owner = await getOptionalOwner();
   if (!owner) throw new Error("UNAUTHENTICATED");

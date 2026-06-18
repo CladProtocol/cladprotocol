@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { requireOwner } from "./session.server";
@@ -50,59 +49,51 @@ async function readSettings(owner: string): Promise<OperatorSettings> {
   };
 }
 
-/** Operator profile + notification toggles for the settings page. */
-export const getSettings = createServerFn({ method: "GET" }).handler(
-  async (): Promise<OperatorSettings> => {
-    const owner = await requireOwner();
-    return readSettings(owner);
-  },
-);
+export async function getSettings(): Promise<OperatorSettings> {
+  const owner = await requireOwner();
+  return readSettings(owner);
+}
 
-/** Persist display name and/or notification toggles (owner-scoped). */
-export const updateSettings = createServerFn({ method: "POST" })
-  .inputValidator(
-    (input: { displayName?: string; notifications?: Partial<NotificationPrefs> }) => input ?? {},
-  )
-  .handler(async ({ data }): Promise<OperatorSettings> => {
-    const db = await getDb();
-    const owner = await requireOwner();
+export async function updateSettings(input: {
+  displayName?: string;
+  notifications?: Partial<NotificationPrefs>;
+}): Promise<OperatorSettings> {
+  const db = await getDb();
+  const owner = await requireOwner();
 
-    if (typeof data.displayName === "string") {
-      const name = data.displayName.trim();
-      if (name.length > 64) throw new Error("Display name must be 64 characters or fewer.");
-      await db
-        .update(schema.users)
-        .set({ displayName: name })
-        .where(eq(schema.users.address, owner));
-      await db.insert(schema.activity).values({
+  if (typeof input.displayName === "string") {
+    const name = input.displayName.trim();
+    if (name.length > 64) throw new Error("Display name must be 64 characters or fewer.");
+    await db.update(schema.users).set({ displayName: name }).where(eq(schema.users.address, owner));
+    await db.insert(schema.activity).values({
+      owner,
+      tag: "Fleet",
+      message: `Display name updated to "${name}"`,
+    });
+  }
+
+  if (input.notifications) {
+    const current = await readSettings(owner);
+    const merged = { ...current.notifications, ...input.notifications };
+    await db
+      .insert(schema.userSettings)
+      .values({
         owner,
-        tag: "Fleet",
-        message: `Display name updated to "${name}"`,
-      });
-    }
-
-    if (data.notifications) {
-      const current = await readSettings(owner);
-      const merged = { ...current.notifications, ...data.notifications };
-      await db
-        .insert(schema.userSettings)
-        .values({
-          owner,
+        notifyAttestations: merged.attestations,
+        notifySettlements: merged.settlements,
+        notifyFleetAlerts: merged.fleetAlerts,
+        notifyWeeklyDigest: merged.weeklyDigest,
+      })
+      .onConflictDoUpdate({
+        target: schema.userSettings.owner,
+        set: {
           notifyAttestations: merged.attestations,
           notifySettlements: merged.settlements,
           notifyFleetAlerts: merged.fleetAlerts,
           notifyWeeklyDigest: merged.weeklyDigest,
-        })
-        .onConflictDoUpdate({
-          target: schema.userSettings.owner,
-          set: {
-            notifyAttestations: merged.attestations,
-            notifySettlements: merged.settlements,
-            notifyFleetAlerts: merged.fleetAlerts,
-            notifyWeeklyDigest: merged.weeklyDigest,
-          },
-        });
-    }
+        },
+      });
+  }
 
-    return readSettings(owner);
-  });
+  return readSettings(owner);
+}
