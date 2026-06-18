@@ -1,31 +1,27 @@
+"use client";
+
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { useAccount, useDisconnect, useSignMessage } from "wagmi";
 import type { Address } from "viem";
 import { createSiweMessage } from "viem/siwe";
-import { getNonce, logout, verifySiwe } from "@/api/auth";
+import { apiPost } from "@/lib/api";
 import { meQueryOptions } from "@/lib/queries";
+import type { Me } from "@/api/auth";
 
 type SignInArgs = {
-  /** Override the connected account (e.g. the result of a fresh connectAsync). */
   address?: Address;
   chainId?: number;
-  /** Navigate to the Command Center on success. */
   redirect?: boolean;
 };
 
-/**
- * Wallet + session state for the UI. `signIn` runs the full SIWE handshake
- * (nonce → sign → verify) and seeds the `me` cache; `signOut` clears both the
- * server session and the wagmi connection.
- */
 export function useAuth() {
   const { address, chainId, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const { disconnectAsync } = useDisconnect();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const meQuery = useQuery(meQueryOptions());
 
   const signIn = useCallback(
@@ -34,7 +30,7 @@ export function useAuth() {
       const cid = args.chainId ?? chainId;
       if (!addr || !cid) throw new Error("Connect a wallet before signing in.");
 
-      const { nonce } = await getNonce();
+      const { nonce } = await apiPost<{ nonce: string }>("/api/auth/nonce");
       const message = createSiweMessage({
         address: addr,
         chainId: cid,
@@ -46,17 +42,17 @@ export function useAuth() {
         issuedAt: new Date(),
       });
       const signature = await signMessageAsync({ message });
-      const user = await verifySiwe({ data: { message, signature } });
+      const user = await apiPost<Me>("/api/auth/verify", { message, signature });
 
       queryClient.setQueryData(meQueryOptions().queryKey, user);
-      if (args.redirect) navigate({ to: "/dashboard" });
+      if (args.redirect) router.push("/dashboard");
       return user;
     },
-    [address, chainId, signMessageAsync, queryClient, navigate],
+    [address, chainId, signMessageAsync, queryClient, router],
   );
 
   const signOut = useCallback(async () => {
-    await logout();
+    await apiPost("/api/auth/logout");
     await disconnectAsync().catch(() => undefined);
     queryClient.setQueryData(meQueryOptions().queryKey, null);
     await queryClient.invalidateQueries({ queryKey: ["me"] });
@@ -73,5 +69,4 @@ export function useAuth() {
   };
 }
 
-/** Truncate an address for display: 0x1234…cdef. */
 export const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;

@@ -1,18 +1,11 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useWalletClient } from "wagmi";
 import { createPaymentHeader } from "x402/client";
-import { getInvokeQuote, invokeAgent } from "@/api/earn";
+import { apiPost } from "@/lib/api";
+import type { InvokeQuote } from "@/api/earn";
 
-/**
- * "Customer pays the agent" flow (Path 3 — the earn bot). Quotes the per-call x402
- * fee; in live mode the connected wallet signs a USDC authorization the treasury
- * settles, then the agent records a real settlement and credits its owner. In paper
- * mode the call is free/synthetic.
- *
- * NOT owner-scoped — the caller is a customer, not the operator. In the demo the
- * operator plays the customer (their connected wallet pays). On success it
- * invalidates the dashboard surfaces so the new earning shows live.
- */
 export function useInvokeAgent() {
   const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -20,14 +13,15 @@ export function useInvokeAgent() {
 
   return useMutation({
     mutationFn: async ({ instanceId }: { instanceId: string }) => {
-      const quote = await getInvokeQuote({ data: { instanceId } });
+      const quote = await apiPost<InvokeQuote>("/api/fleet/invoke-quote", { instanceId });
 
-      // Paper mode: free/synthetic — no wallet signature needed.
       if (quote.free) {
-        return await invokeAgent({ data: { instanceId } });
+        return await apiPost<{ ok: true; amount: number; txHash: string; job: string }>(
+          "/api/fleet/invoke",
+          { instanceId },
+        );
       }
 
-      // Live mode: the connected wallet signs the x402 USDC authorization.
       if (!isConnected || !walletClient) {
         throw new Error("Connect a wallet to pay the agent.");
       }
@@ -36,7 +30,10 @@ export function useInvokeAgent() {
         quote.x402Version,
         quote.requirements,
       );
-      return await invokeAgent({ data: { instanceId, payment } });
+      return await apiPost<{ ok: true; amount: number; txHash: string; job: string }>(
+        "/api/fleet/invoke",
+        { instanceId, payment },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["instance"] });
